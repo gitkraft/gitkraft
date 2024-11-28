@@ -20,6 +20,8 @@ To benefit the public, GitKraft will distribute popular open-source projects on 
 
 **[📲 Follow me on LinkedIn](https://www.linkedin.com/in/akorzy)**. Don't miss out on updates.
 
+**[▶️ Watch a demo](https://www.youtube.com/watch?v=G8VT_YaDY5U)**. See it in action.
+
 **[✉️ Send me a free message on LinkedIn](https://www.linkedin.com/in/akorzy)**. If you're interested in this project, tell me what you need! I promise – no chatbot!
 
 ## How to Use GitKraft
