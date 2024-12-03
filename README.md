@@ -16,7 +16,7 @@ In addition to secure forks, GitKraft offers a modern and efficient solution for
 - **Merge**: Merging upstream changes into a private branch buries customizations within the branch's history, making it hard to distinguish between official releases and custom modifications.
 - **Rebase**: Rebasing a patch branch over upstream changes disrupts workflows for developers who have already checked out the branch, leading to errors when running `git pull`.
 
-To address these challenges, GitKraft introduces a novel approach to patch management with a new operation called **weld merge**. This operation preserves a transparent history of changes, simplifying audits and fostering effective collaboration.
+To address these challenges, GitKraft introduces a novel approach to patch management with a new operation called _weld merge_. This operation preserves a transparent history of changes, simplifying audits and fostering effective collaboration.
 
 In summary, GitKraft accelerates development and update cycles, enables rapid vulnerability fixes, and maintains clear audit trails. These features empower open-source collaboration, reduce reliance on permanent forks, and streamline contributions back to the community.
 
@@ -54,7 +54,7 @@ When GitKraft is released you'll be able to use it as follows.
 
 Selecting **Private Fork** creates a repository based on a GitKraft template. This template uses a GitHub Workflow to download the chart and its dependencies, merging them into `main`.
 
-During updates, the _GitKraft: Update_ workflow cherry-picks your custom patches on top of the latest release from upstream. It then performs a special merge, known as a _welding merge_, which attaches the patched release to `main` in your private repository.
+During updates, the _GitKraft: Update_ workflow cherry-picks your custom patches on top of the latest release from upstream. It then performs a special merge, known as a _weld merge_, which attaches the patched release to `main` in your private repository.
 
 If all customizations cherry-pick successfully, the workflow completes as follows:
 
@@ -81,7 +81,7 @@ gitGraph
     commit id:" " tag:"1.0"
     checkout "your private repo"
     commit id:"Initial commit"
-    merge "GitKraft repo with chart" id:"welding merge 1.0" type:HIGHLIGHT
+    merge "GitKraft repo with chart" id:"weld merge 1.0" type:HIGHLIGHT
     commit id:"your patch (A)"
     commit id:"your patch (B)"
     checkout "GitKraft repo with chart"
@@ -90,7 +90,7 @@ gitGraph
     commit id:"cherry-picked (A)"
     commit id:"cherry-picked (B)"
     checkout "your private repo"
-    merge "update to new version" id:"welding merge 1.1" type:HIGHLIGHT
+    merge "update to new version" id:"weld merge 1.1" type:HIGHLIGHT
 ```
 
 If conflicts occur, temporary branches `gitkraft/update` and `gitkraft/main` are created, and a link to a pull request (PR) is generated for conflict resolution. Once the user resolves and merges, the _GitKraft: finalize conflict resolution_ workflow updates `main` using the conflict resolution from `gitkraft/main`. Note that due to GitHub’s conflict resolution process, all patches will combine into one commit (a future improvement may address this). The final `main` branch in your private repo looks like this:
@@ -118,7 +118,7 @@ gitGraph
     commit id:" " tag:"1.0"
     checkout "your private repo"
     commit id:"Initial commit"
-    merge "GitKraft repo with chart" id:"welding merge 1.0" type:HIGHLIGHT
+    merge "GitKraft repo with chart" id:"weld merge 1.0" type:HIGHLIGHT
     commit id:"your patch (A)"
     commit id:"your patch (B)"
     checkout "GitKraft repo with chart"
@@ -126,7 +126,7 @@ gitGraph
     branch "update to new version" order: 1
     commit id:"combined (A)+(B)"
     checkout "your private repo"
-    merge "update to new version" id:"welding merge 2.0" type:HIGHLIGHT
+    merge "update to new version" id:"weld merge 2.0" type:HIGHLIGHT
 ```
 
 [^Truffle]: [Anyone can Access Deleted and Private Repository Data on GitHub](https://trufflesecurity.com/blog/anyone-can-access-deleted-and-private-repo-data-github), Truffle Security, July 24, 2024
