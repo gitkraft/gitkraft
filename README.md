@@ -6,13 +6,23 @@ With GitKraft's **GitHub extensions**, users can create **private forks** of sof
 
 ## Why Choose GitKraft?
 
-Large organizations often need to **adapt vendor or community software** to meet specific requirements while keeping up with the latest updates. GitKraft provides a modern, efficient toolset for **managing source-code patches**, overcoming the limitations of traditional methods that can lead to delays and security risks. By integrating patch management into the Git version control system, GitKraft **accelerates development and update cycles**, enables rapid vulnerability fixes, and maintains **clear audit trails**. It also fosters open-source collaboration, reducing the need for forks and simplifying contributions back to the community.
+Large organizations often need to **adapt the source code** of vendor or community software to meet specific requirements while keeping up with the latest updates. However, GitHub has a notable limitation: a fork of a public repository must also be public, as private forks of public repositories are not supported. GitKraft bridges this gap by enabling the creation of **private forks for public repositories**.
 
-An example of software distributed as source code is Helm charts (used for configuring services on the Kubernetes platform). End-users often need to customize Helm charts at the source level, highlighting the need for patch management solutions like GitKraft.
+While GitHub allows private forks when the source repository is private (with the option to later make the source repo public), this approach introduces a significant security flaw. Users from other organizations can access commits from private repositories within the same fork network, even including commits from deleted private repositories. Truffle Security has highlighted this issue[^Truffle], which poses a severe risk of exposing confidential information. GitKraft's private forks address this problem, ensuring your data remains **secure** and **isolated**.
+
+In addition to secure forks, GitKraft offers a modern and efficient solution for **managing source-code patches**, overcoming challenges associated with traditional approaches. Current patch management methods often obscure the change history, complicating code reviews and collaboration. Some common problems include:
+
+- **`.patch` files in Git repositories**: Storing customizations as `.patch` files feels like using one version control system inside another, making it difficult to understand changes.
+- **Merge**: Merging upstream changes into a private branch buries customizations within the branch's history, making it hard to distinguish between official releases and custom modifications.
+- **Rebase**: Rebasing a patch branch over upstream changes disrupts workflows for developers who have already checked out the branch, leading to errors when running `git pull`.
+
+To address these challenges, GitKraft introduces a novel approach to patch management with a new operation called **weld merge**. This operation preserves a transparent history of changes, simplifying audits and fostering effective collaboration.
+
+In summary, GitKraft accelerates development and update cycles, enables rapid vulnerability fixes, and maintains clear audit trails. These features empower open-source collaboration, reduce reliance on permanent forks, and streamline contributions back to the community.
 
 ## GitKraft for Open Source
 
-To benefit the public, GitKraft will distribute popular open-source projects on its platform. Initially, all distributed projects will be Helm charts. This initiative is currently in progress. Stay tuned for updates.
+A prime example of software distributed as source code is **Helm charts**, commonly used to configure services on the Kubernetes platform. End-users often need to customize Helm templates at the source level, highlighting the need for robust patch management solutions like GitKraft. To benefit the public, GitKraft will distribute popular open-source Helm charts on its platform. This initiative is currently in progress. Stay tuned for updates.
 
 ## Stay in Touch
 
@@ -118,3 +128,5 @@ gitGraph
     checkout "your private repo"
     merge "update to new version" id:"welding merge 2.0" type:HIGHLIGHT
 ```
+
+[^Truffle]: [Anyone can Access Deleted and Private Repository Data on GitHub](https://trufflesecurity.com/blog/anyone-can-access-deleted-and-private-repo-data-github), Truffle Security, July 24, 2024
