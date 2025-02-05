@@ -1,0 +1,145 @@
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# GitKraft: source code distribution and customization
+# Copyright (C) 2025  GitKraft Authors
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as 
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <https://www.gnu.org/licenses/>.
+
+name: "GitKraft: update (reusable workflow)"
+run-name: "GitKraft: update to ${{inputs.upstreamVersion != '' && inputs.upstreamVersion || 'latest' }} (reusable workflow)"
+on:
+  workflow_call:
+    inputs:
+      upstreamVersion:
+        description: 'Upstream version to import - leave empty for latest'
+        required: false
+        type: string
+      gitkraftToolOwnerAndRepo:
+        description: 'Owner and repository of the git-kraft tool'
+        required: true
+        type: string
+        default: 'gitkraft/gitkraft'
+      gitkraftToolRef:
+        description: 'Branch, tag, or commit SHA of the git-kraft tool'
+        required: true
+        type: string
+        default: 'v1'
+    secrets:
+      token:
+        description: 'Access token for repos'
+        required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+
+  update:
+    runs-on: ${{ vars.GITKRAFT_RUNS_ON || 'ubuntu-latest' }}
+
+    steps:
+
+    - name: Clone ${{ github.repository }}
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.token }}
+        fetch-depth: 0
+        path: ${{ github.repository }}
+
+    - name: Clone ${{ inputs.gitkraftToolOwnerAndRepo }}
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.token }}
+        fetch-depth: 1
+        repository: ${{ inputs.gitkraftToolOwnerAndRepo }}
+        ref: ${{ inputs.gitkraftToolRef }}
+        path: ${{ inputs.gitkraftToolOwnerAndRepo }}
+
+    - name: Update
+      env:
+        GIT_AUTHOR_NAME: "${{ github.triggering_actor }}"
+        GIT_AUTHOR_EMAIL: "${{ github.triggering_actor }}@users.noreply.github.com"
+        GIT_COMMITTER_NAME: "gitkraft[bot]"
+        GIT_COMMITTER_EMAIL: "noreply@gitkraft.com"
+      run: |
+        set -euo pipefail
+        set -x
+        cd "${{ github.repository }}"
+        gitkraftToolOwnerAndRepo="${{ inputs.gitkraftToolOwnerAndRepo }}"
+        export PATH="$GITHUB_WORKSPACE/$gitkraftToolOwnerAndRepo:$PATH"
+        forkedRepoUrl="$(git kraft repo config read forkedRepoUrl)"
+
+        git remote add upstream-remote "$forkedRepoUrl.git"
+        git fetch --all --quiet
+
+        upstreamVersion=${{
+          (github.event_name == 'workflow_dispatch' && inputs.upstreamVersion != '')
+            && inputs.upstreamVersion
+            || (
+              (github.run_number == 1 && github.run_attempt == 1 && github.repository == 'your-org123/nginx.btnmi-chart.v1')
+                && '18.2.0'
+                || ''
+            )
+        }}  # hard-coded exception for GitKraft's demos
+
+        git kraft skeleton update
+        git push origin --force $(git tag --list 'gitkraft/*')
+        if git kraft upstream update "$upstreamVersion"; then
+          git push origin main
+          exit 0
+        fi
+
+        upstreamVersionOrLatest=$([[ -n "$upstreamVersion" ]] && echo -n "$upstreamVersion" || echo -n "latest")
+        if ! git rev-parse --verify 'refs/heads/gitkraft/update'; then
+          >&2 echo "ERROR: unable to update to $upstreamVersionOrLatest"
+          exit -1
+        fi
+        git push origin --force "gitkraft/main" "gitkraft/update"
+
+        rawurlencode() {
+          local string="$1"
+          local strlen=${#string}
+          local encoded=""
+          for (( i=0; i<strlen; i++ )); do
+            local c="${string:i:1}"
+            case "$c" in
+              [a-zA-Z0-9.~_-]) 
+                encoded+="$c"
+                ;;
+              *)
+                encoded+=$(printf '%%%02X' "'$c")
+                ;;
+            esac
+          done
+          echo "$encoded"
+        }
+
+        repositoryEncoded=$(rawurlencode "${{github.repository}}")
+        titleEncoded=$(rawurlencode "Update to $upstreamVersionOrLatest")
+        bodyEncoded=$(rawurlencode "Use this PR to resolve conflicts and update to $upstreamVersionOrLatest")
+
+        prCreationLink="https://github.com/$ownerEncoded/compare/gitkraft/main...gitkraft/update?expand=1&title=$titleEncoded&body=$bodyEncoded"
+
+        cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+        # Conflict Detected
+
+        A conflict was detected while updating to $upstreamVersionOrLatest. To resolve it and proceed with the update, click the button below to create a pull request (which will target a temporary 'gitkraft/main' branch), then click on the "Resolve conflict" button on the PR, and finally merge the PR. A GitHub workflow will then start automatically and merge the update to the 'main' branch. Note: don't squash or rebase the PR, or the workflow won't be able to finish successfully. Note also that the conflict resolution process will combine all your patches into a single commit (a future improvement to GitKraft may address this). If you need help, please contact the GitKraft team by [opening an issue](https://github.com/gitkraft/gitkraft/issues/new?template=Blank+issue).
+
+        <p align="center">
+          <a href="$prCreationLink">
+              <img alt="Create PR to Resolve" src="https://github.com/user-attachments/assets/147e2876-ab19-448d-83f5-e0c7d8302418" width="198" height="42"/>
+          </a>
+        </p>
+        EOF
+        exit -1

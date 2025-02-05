@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# GitKraft: source code distribution and customization
+# Copyright (C) 2025  GitKraft Authors
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as 
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <https://www.gnu.org/licenses/>.
+
+name: "GitKraft: finalize conflict resolution (reusable workflow)"
+run-name: "GitKraft: finalize conflict resolution (reusable workflow)"
+on:
+  workflow_call:
+    inputs:
+      gitkraftToolOwnerAndRepo:
+        description: 'Owner and repository of the git-kraft tool'
+        required: true
+        type: string
+        default: 'gitkraft/gitkraft'
+      gitkraftToolRef:
+        description: 'Branch, tag, or commit SHA of the git-kraft tool'
+        required: true
+        type: string
+        default: 'v1'
+    secrets:
+      token:
+        description: 'Access token for repos'
+        required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+
+  finalize:
+    runs-on: ${{ vars.GITKRAFT_RUNS_ON || 'ubuntu-latest' }}
+
+    steps:
+
+    - name: Clone ${{ github.repository }}
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.token }}
+        ref: main
+        fetch-depth: 0
+        path: ${{ github.repository }}
+
+    - name: Clone ${{ inputs.gitkraftToolOwnerAndRepo }}
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.token }}
+        fetch-depth: 1
+        repository: ${{ inputs.gitkraftToolOwnerAndRepo }}
+        ref: ${{ inputs.gitkraftToolRef }}
+        path: ${{ inputs.gitkraftToolOwnerAndRepo }}
+
+    - name: Update
+      env:
+        GIT_AUTHOR_NAME: "${{ github.triggering_actor }}"
+        GIT_AUTHOR_EMAIL: "${{ github.triggering_actor }}@users.noreply.github.com"
+        GIT_COMMITTER_NAME: "gitkraft[bot]"
+        GIT_COMMITTER_EMAIL: "noreply@gitkraft.com"
+      run: |
+        set -euo pipefail
+        set -x
+        cd "${{ github.repository }}"
+        export PATH="$GITHUB_WORKSPACE/${{ inputs.gitkraftToolOwnerAndRepo }}:$PATH"
+        git kraft conflict finalize
+        git push origin main

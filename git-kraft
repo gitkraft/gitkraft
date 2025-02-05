@@ -1,0 +1,283 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# GitKraft: source code distribution and customization
+# Copyright (C) 2025  GitKraft Authors
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <https://www.gnu.org/licenses/>.
+
+function help {
+  echo "Usage: git-kraft tool <command>"
+  echo "       git-kraft conflict <command>"
+  echo "       git-kraft upstream <command>"
+  echo "       git-kraft weld <command>"
+  echo "       git-kraft help"
+}
+
+function last {
+  set -euo pipefail
+  set -x
+  local regex="$1"
+  local ref="$2"
+  if [[ -z "$regex" ]]; then
+    regex=".*"
+  fi
+  if [[ -z "$ref" ]]; then
+    ref="HEAD"
+  fi
+  local lastSha=''
+  lastSha=$(git log -1 \
+    --topo-order \
+    --grep="^GitKraft-Commit-Type: $regex$" \
+    --format='%H' \
+    "$ref" \
+  )
+  echo -n "$lastSha"
+}
+
+function tool_version {
+  echo "0.1.0"
+}
+
+function skeleton_update {
+  set -euo pipefail
+  set -x
+  if [[ -f ".github/.gitkraft-template/README.md" ]]; then
+    git rm README.md
+    git mv .github/.gitkraft-template/README.md README.md
+    git add README.md
+    git commit -m "GitKraft: update README.md" --no-edit
+  fi
+}
+
+function conflict_finalize {
+  set -euo pipefail
+  set -x
+  local pkgName
+  pkgName=$(repo_config_read pkgName)
+  if ! git rev-parse --verify "remotes/origin/gitkraft/main^2^1" >>/dev/null; then
+    >&2 echo "ERROR: could not find the expected merge structure after conflict resolution on the 'gitkraft/main' branch. This can happen when the conflict resolution is done outside of GitHub's conflict resolution tool or when the pull request is squashed or rebased. Please resolve the conflict using GitHub's 'Resolve conflict' button on the PR and then merge the PR, without squashing or rebasing."
+    exit -1
+  fi
+  local summary
+  summary=$(git log -1 --format=%s origin/gitkraft/main^2^1)
+  local upstreamVersion
+  upstreamVersion=$(
+    (
+      grep '^Upstream-Version: ' | grep --only-match '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*'
+    ) <<< "$summary"
+  )
+  git checkout -B gitkraft/import "gitkraft/$pkgName/$upstreamVersion"
+  git cherry-pick --mainline 1 --no-commit origin/gitkraft/main^2
+  git commit --all --no-edit --allow-empty --message "Combined patches"
+  git checkout main
+  (weld_create gitkraft/import)
+}
+
+function weld_create {
+  set -euo pipefail
+  set -x
+  local ref="$1"
+  if [[ -z "$ref" ]]; then
+    >&2 echo "ERROR: ref not provided"
+    exit -1
+  fi
+  local pkgName
+  pkgName=$(repo_config_read pkgName)
+  local gitkraftCommitLast
+  gitkraftCommitLast=$(last ".*" "$ref")
+  local upstreamVersion
+  upstreamVersion=$(upstream_version_read "$gitkraftCommitLast")
+
+  git merge --strategy=ours --allow-unrelated-histories --no-ff --no-commit \
+    "$ref"
+  git rm -r --force --ignore-unmatch "$pkgName"
+  git read-tree --prefix "$pkgName" "$ref:$pkgName"
+  git commit --no-edit --allow-empty \
+    -m "\`$pkgName/$upstreamVersion\` welded to \`main\`" \
+    -m "Replaced the main branch with $pkgName/$upstreamVersion combined with customizations." \
+    -m "Upstream-Version: $upstreamVersion" \
+    -m "GitKraft-Commit-Type: weld"
+  git reset --hard
+}
+
+function upstream_update {
+  set -euo pipefail
+  set -x
+
+  local upstreamVersion="$1"
+
+  local pkgName
+  pkgName=$(repo_config_read pkgName)
+
+  if [[ -n "$upstreamVersion" ]]; then
+    if [[ ! "$upstreamVersion" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      >&2 echo "ERROR: invalid upstream version: $upstreamVersion"
+      exit -1
+    fi
+    if ! git rev-parse --verify "refs/tags/gitkraft/$pkgName/$upstreamVersion" >>/dev/null; then
+      >&2 echo "ERROR: tag not found: gitkraft/$pkgName/$upstreamVersion"
+      exit -1
+    fi
+  else
+    upstreamVersion=$(upstream_version_last)
+  fi
+
+  local -a patches=()
+  local weldLast
+  weldLast=$(last weld HEAD)
+  if [[ -n "$weldLast" ]]; then
+    if git rev-parse "$weldLast^2" >> /dev/null; then
+      local upstreamVersionLast
+      upstreamVersionLast=$(upstream_version_read "$weldLast")
+      IFS=$'\n' patches+=( \
+        $(git log \
+          --topo-order \
+          --reverse \
+          --first-parent \
+          --format='%H' \
+          "gitkraft/$pkgName/$upstreamVersionLast..$weldLast^2" \
+          -- \
+          "$pkgName" \
+        ) \
+      )
+    fi
+  else
+    weldLast=$(git log -1 --format=%H origin/main)
+  fi
+  IFS=$'\n' patches+=( \
+    $(git log \
+      --topo-order \
+      --reverse \
+      --first-parent \
+      --format='%H' \
+      "$weldLast..origin/main" \
+      -- \
+      "$pkgName" \
+    ) \
+  )
+
+  git checkout -B gitkraft/import "gitkraft/$pkgName/$upstreamVersion"
+  local patch
+  for patch in "${patches[@]}"; do
+    if ! git cherry-pick --mainline 1 -x "$patch"; then
+      git cherry-pick --abort
+      git checkout -B gitkraft/update "gitkraft/$pkgName/$upstreamVersion"
+      git checkout -B gitkraft/main main
+      git checkout main
+      >&2 echo "ERROR: conflict detected, please resolve it and push the changes to the branch"
+      exit -1
+    fi
+  done
+  git checkout main
+  (weld_create gitkraft/import)
+}
+
+function upstream_version_read {
+  set -euo pipefail
+  set -x
+  local ref="$1"
+  if [[ -z "$ref" ]]; then
+    ref="HEAD"
+  fi
+  local commitMessage
+  commitMessage=$(git log -1 --format=%B "$ref")
+  local -a upstreamVersionLines
+  IFS=$'\n' upstreamVersionLines=( $(grep '^Upstream-Version: ' <<< "$commitMessage" || true) )
+  if [[ "${#upstreamVersionLines[@]}" -eq 0 ]]; then
+    >&2 echo "ERROR: upstream version not found in commit message"
+    exit -1
+  fi
+  local lastUpstreamVersionLine
+  lastUpstreamVersionLine="${upstreamVersionLines[-1]}"
+  local upstreamVersion
+  upstreamVersion="${lastUpstreamVersionLine##Upstream-Version: }"
+  echo -n "$upstreamVersion"
+}
+
+function upstream_version_last {
+  set -euo pipefail
+  set -x
+  local pkgName
+  pkgName=$(repo_config_read pkgName)
+  local -a matchingTags
+  IFS=$'\n' matchingTags=( $(git tag --list --sort=-version:refname "gitkraft/$pkgName/*") )
+  if [[ "${#matchingTags[@]}" -eq 0 ]]; then
+    >&2 echo "ERROR: no tags found"
+    exit -1
+  fi
+  local latestTag
+  latestTag="${matchingTags[0]}"
+  local upstreamVersion
+  upstreamVersion="${latestTag##*/}"
+  if [[ -z "$upstreamVersion" ]]; then
+    >&2 echo "ERROR: upstream version not found"
+    exit -1
+  fi
+  echo -n "$upstreamVersion"
+}
+
+function repo_config_read {
+  set -euo pipefail
+  set -x
+  local field="$1"
+  if [[ -z "$field" ]]; then
+    >&2 echo "ERROR: field not provided"
+    exit -1
+  fi
+  if [[ ! -f .gitkraft.yaml ]]; then
+    >&2 echo "ERROR: .gitkraft.yaml not found"
+    exit -1
+  fi
+  local line
+  line=$(grep --max-count 1 "^$field: " .gitkraft.yaml)
+  local val
+  val="${line##$field: }"
+  echo -n "$val"
+}
+
+function main {
+  set -eo pipefail
+  set -x
+  if [[ "$1" == "help" ]]; then
+    (help)
+  elif [[ "$1" == "last" ]]; then
+    (last "$2" "$3")
+  elif [[ "$1" == "tool" && "$2" == "version" ]]; then
+    (tool_version)
+  elif [[ "$1" == "skeleton" && "$2" == "update" ]]; then
+    (skeleton_update)
+  elif [[ "$1" == "conflict" && "$2" == "finalize" ]]; then
+    (conflict_finalize)
+  elif [[ "$1" == "weld" && "$2" == "create" ]]; then
+    (weld_create "$3")
+  elif [[ "$1" == "upstream" && "$2" == "update" ]]; then
+    (upstream_update "$3")
+  elif [[ "$1" == "upstream" && "$2" == "version" && "$3" == "read" ]]; then
+    (upstream_version_read "$4")
+  elif [[ "$1" == "upstream" && "$2" == "version" && "$3" == "last" ]]; then
+    (upstream_version_last)
+  elif [[ "$1" == "repo" && "$2" == "config" && "$3" == "read" ]]; then
+    (repo_config_read "$4")
+  else
+    >&2 echo "ERROR: invalid command"
+    (help)
+    exit -1
+  fi
+}
+
+if [[ -z "$GITKRAFT_NO_EXEC" ]]; then
+  (main "$@")
+  exit $?
+fi
