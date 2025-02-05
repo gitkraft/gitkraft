@@ -87,7 +87,7 @@ jobs:
           (github.event_name == 'workflow_dispatch' && inputs.upstreamVersion != '')
             && inputs.upstreamVersion
             || (
-              (github.run_number == 1 && github.run_attempt == 1 && github.repository == 'your-org123/nginx.btnmi-chart.v1')
+              (github.run_number == 1 && github.run_attempt == 1 && (github.repository == 'your-org123/nginx.btnmi-chart.v0' || github.repository == 'your-org123/nginx.btnmi-chart.v1'))
                 && '18.2.0'
                 || ''
             )
