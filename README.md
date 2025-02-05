@@ -40,15 +40,15 @@ When GitKraft is released you'll be able to use it as follows.
 
 | Step No. | Instructions | Screenshot |
 |----------|----------|--|
-| 1    | Browse the available repositories in the gitkraft organization on GitHub. Click on the repository containing the chart you require.|![browse](https://github.com/user-attachments/assets/c5e0d84b-ee5d-455c-b07d-c073ee76837c)|
-| 2    | Scroll down to the README file. Click on the green **Private Fork** button. |![private fork](https://github.com/user-attachments/assets/79257fb8-ff99-42a7-a16a-7e2e72ef69dd)|
-| 3    | Choose your organization for the private fork, then click **Create repository**. |![create repository](https://github.com/user-attachments/assets/8a7d781b-50fa-4694-ab0e-e63195ddf59a)|
-| 4    | A GitHub workflow has now started in the background and will populate the repository with contents. You can click on the green **Watch progress** button, or wait and refresh the page after a couple of minutes.|![watch progress](https://github.com/user-attachments/assets/72273d8f-50e4-421c-9ebe-9c05700298c8)|
-| 5    | Once the repository is ready, commit your customizations to the `main` branch as needed. |![commit](https://github.com/user-attachments/assets/cc8dae33-1ceb-4fa9-8235-d36b961027d6)|
-| 6    | When a new community version is released, click on the **Update** button in the README file, which will take you to a page where you can trigger an update. |![update](https://github.com/user-attachments/assets/fe9724b6-8655-4b89-abed-86e34f6090cd)|
-| 7    | Click on the dark grey dropdown box **Run workflow** and then on the green **Run workflow** button to import the latest release while preserving your source-level customizations. Optionally, you can also type in another release to import, rather than the latest one – such as an older version to roll back to.|![run workflow](https://github.com/user-attachments/assets/0a2601b0-4493-4dcf-8b28-0307d97db9e1)|
-| 8a   | If there are no conflicts, the workflow completes successfully, merging your customizations with the update. |![workflow successful](https://github.com/user-attachments/assets/aac9c3b3-fcf6-409f-a833-9abe01282afc)|
-| 8b   | If conflicts occur, the workflow provides a button to resolve it and proceed with the update by creating a pull request and accessing the conflict resolution interface. |![workflow failed](https://github.com/user-attachments/assets/5e8068e7-9ace-4e73-948f-08f977bfce6c)|
+| 1    | Browse the available repositories in the gitkraft organization on GitHub. Click on the repository containing the chart you require.|![browse](https://github.com/user-attachments/assets/cce31d44-cc3b-4bdd-9a43-417a4cf75a30)|
+| 2    | Scroll down to the README file. Click on the green **Private Fork** button. |![private fork](https://github.com/user-attachments/assets/2ab87261-3802-4994-99bb-7590edbfc01c)|
+| 3    | Choose your organization for the private fork, then click **Create repository**. |![create repository](https://github.com/user-attachments/assets/0c966688-9ad6-4718-8bb0-14d6494eb21a)|
+| 4    | A GitHub workflow has now started in the background and will populate the repository with contents. You can click on the green **Watch progress** button, or wait and refresh the page after a couple of minutes.|![watch progress](https://github.com/user-attachments/assets/b310738c-f1da-453c-b10c-511541804779)|
+| 5    | Once the repository is ready, commit your customizations to the `main` branch as needed. |![commit](https://github.com/user-attachments/assets/1264aa71-8089-46b7-a3a0-a2369701c14e)|
+| 6    | When a new community version is released, click on the **Update** button in the README file, which will take you to a page where you can trigger an update. |![update](https://github.com/user-attachments/assets/bbc24c87-d985-4142-b22b-2c8cd65f66fb)|
+| 7    | Click on the dark grey dropdown box **Run workflow** and then on the green **Run workflow** button to import the latest release while preserving your source-level customizations. Optionally, you can also type in another release to import, rather than the latest one – such as an older version to roll back to.|![run workflow](https://github.com/user-attachments/assets/2edaa9ae-eecb-459a-82a7-2e3d2d4e0f4a)|
+| 8a   | If there are no conflicts, the workflow completes successfully, merging your customizations with the update. |![update success](https://github.com/user-attachments/assets/69e4dc5f-ec05-430a-a350-d1ed935a2b84)|
+| 8b   | If conflicts occur, the workflow provides a button to resolve it and proceed with the update by creating a pull request and accessing the conflict resolution interface. |![create pr to resolve](https://github.com/user-attachments/assets/8d3151f2-eef5-4d0e-949c-de58c88fb685)|
 
 ## How GitKraft Works
 
