@@ -125,11 +125,10 @@ jobs:
           echo "$encoded"
         }
 
-        repositoryEncoded=$(rawurlencode "${{github.repository}}")
         titleEncoded=$(rawurlencode "Update to $upstreamVersionOrLatest")
         bodyEncoded=$(rawurlencode "Use this PR to resolve conflicts and update to $upstreamVersionOrLatest")
 
-        prCreationLink="https://github.com/$ownerEncoded/compare/gitkraft/main...gitkraft/update?expand=1&title=$titleEncoded&body=$bodyEncoded"
+        prCreationLink="https://github.com/${{github.repository}}/compare/gitkraft/main...gitkraft/update?expand=1&title=$titleEncoded&body=$bodyEncoded"
 
         cat <<EOF >> "$GITHUB_STEP_SUMMARY"
         # Conflict Detected

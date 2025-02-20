@@ -71,7 +71,7 @@ function conflict_finalize {
     exit -1
   fi
   local summary
-  summary=$(git log -1 --format=%s origin/gitkraft/main^2^1)
+  summary=$(git log -1 --format=%b origin/gitkraft/main^2^1)
   local upstreamVersion
   upstreamVersion=$(
     (
