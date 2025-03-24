@@ -19,13 +19,15 @@
 
 # 👋 Welcome to GitKraft
 
-GitKraft is a platform for distributing **software as source code** on GitHub, uniquely designed to empower end-users to **easily manage and retain custom, source-level modifications** of software.
+GitKraft is a platform for distributing **software as source code** and a patch management system uniquely designed to empower end-users to **easily manage and retain custom, source-level modifications** of software.
 
-With GitKraft's **GitHub extensions**, users can create **private forks** of software, **customize its source code**, and **update** the software to the latest vendor or community release—all **without losing customizations**.
+A robust patch management system also allows users to **re-apply** their modifications following **software updates**. GitKraft leverages git commits to store patches and utilizes GitHub as its user interface. Currently, GitKraft offers over 100 open-source Helm charts, all of which can be easily customized and managed through patches.
 
 ## Why Choose GitKraft?
 
-Large organizations often need to **adapt the source code** of vendor or community software to meet specific requirements while keeping up with the latest updates. However, GitHub has a notable limitation: a fork of a public repository must also be public, as private forks of public repositories are not supported. GitKraft bridges this gap by enabling the creation of **private forks for public repositories**.
+Traditional configuration files can cause unexpected issues when default values change during software updates – user-defined settings may become incompatible without warning. To address this, GitKraft replaces standard configuration files with patches. These patches explicitly capture both the original default values and the user's customizations, enabling the update system to notify users whenever underlying defaults change. 
+
+Furthermore, large organizations often need to **adapt the source code** of vendor or community software to meet specific requirements while keeping up with the latest updates. However, GitHub has a notable limitation: a fork of a public repository must also be public, as private forks of public repositories are not supported. GitKraft bridges this gap by enabling the creation of **private forks for public repositories**.
 
 While GitHub allows private forks when the source repository is private (with the option to later make the source repo public), this approach introduces a significant security flaw. Users from other organizations can access commits from private repositories within the same fork network, even including commits from deleted private repositories. Truffle Security has highlighted this issue[^Truffle], which poses a severe risk of exposing confidential information. GitKraft's private forks address this problem, ensuring your data remains **secure** and **isolated**.
 
