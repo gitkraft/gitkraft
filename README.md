@@ -19,9 +19,9 @@
 
 # 👋 Welcome to GitKraft
 
-GitKraft is a platform for distributing **software as source code** and a patch management system uniquely designed to empower end-users to **easily manage and retain custom, source-level modifications** of software.
+GitKraft is a platform for distributing **software as source code**, combined with a patch management system designed to help end-users easily **manage and preserve their custom, source-level modifications**.
 
-A robust patch management system also allows users to **re-apply** their modifications following **software updates**. GitKraft leverages git commits to store patches and utilizes GitHub as its user interface. Currently, GitKraft offers over 100 open-source Helm charts, all of which can be easily customized and managed through patches.
+The patch management system enables users to **reapply** their changes following **software updates**. GitKraft stores patches as Git commits and uses GitHub as its user interface. Currently, GitKraft offers more than 100 open-source Helm charts, all of which can be easily customized and maintained through patches.
 
 ## Why Choose GitKraft?
 
