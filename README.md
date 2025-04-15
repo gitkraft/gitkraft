@@ -23,6 +23,14 @@ GitKraft is a platform for distributing **software as source code**, combined wi
 
 The patch management system enables users to **re-apply** their changes following **software updates**. GitKraft stores patches as Git commits and uses GitHub as its user interface. Currently, GitKraft offers more than 100 open-source Helm charts, all of which can be easily customized and maintained through patches.
 
+
+
+<p align="center">
+    <a href="https://github.com/orgs/gitkraft/repositories?q=sort%3Aname-asc+topic%3Ahelm-chart">
+        <img alt="Go to repositories" src="https://github.com/user-attachments/assets/b39fd293-77ed-4304-8d3f-718439369932" width="168" height="37"/>
+    </a>
+</p>
+
 ## Why Choose GitKraft?
 
 Traditional configuration files can cause unexpected issues when default values change during software updates – user-defined settings may become incompatible without warning. To address this, GitKraft replaces standard configuration files with patches. These patches explicitly capture both the original default values and the user's customizations, enabling the update system to notify users whenever underlying defaults change. 
