@@ -164,9 +164,6 @@ gitGraph
 
 ## Legal
 
-GitKraft was created by Aleksander Korzyński and is maintained by KZS Commerce Ltd,
-a company registered in England and Wales under company number 12242538,
-with its registered office at:
-Office 315B, 182-184 High St. North, London, E6 2JA, United Kingdom.
+GitKraft was created by Aleksander Korzyński
 
 [^Truffle]: [Anyone can Access Deleted and Private Repository Data on GitHub](https://trufflesecurity.com/blog/anyone-can-access-deleted-and-private-repo-data-github), Truffle Security, July 24, 2024
