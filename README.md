@@ -17,7 +17,7 @@
   with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
-# The project is no longer maintained
+**-- The project is no longer maintained --**
 
 # 👋 Welcome to GitKraft
 
