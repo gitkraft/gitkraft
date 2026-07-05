@@ -17,6 +17,8 @@
   with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
+# The project is no longer maintained
+
 # 👋 Welcome to GitKraft
 
 GitKraft is a platform for distributing **software as source code**, combined with a patch management system designed to help end-users easily **manage and preserve their custom, source-level modifications**.
